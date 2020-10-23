@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t frxzn/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true rexzn/react-test npm test
+
+after_success:
+    - docker build -t frxzn/multi-client ./client
+    - docker build -t frxzn/multi-nginx ./nginx
+    - docker build -t frxzn/multi-server ./server
+    - docker build -t frxzn/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID"  --password-stdin
+    - docker push frxzn/multi-client
+    - docker push frxzn/multi-nginx
+    - docker push frxzn/multi-server
+    - docker push frxzn/multi-worker
